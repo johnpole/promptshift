@@ -1,0 +1,5 @@
+{
+  "name": "PromptShift",
+  "description": "An AI-powered Chrome Extension that transforms raw, messy prompts into structured, high-performance LLM instructions using industry best practices like CO-STAR, Chain-of-Thought, and Agentic workflows.",
+  "requestFramePermissions": []
+}

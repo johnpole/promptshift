@@ -1,0 +1,26 @@
+{
+  "name": "promptshift",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A Chrome Extension that transforms raw prompts into structured, high-performance LLM instructions using proven frameworks — powered by Google Gemini.",
+  "author": "John Krupavaram Pole Bhakthavatsalam",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.574.0",
+    "@google/genai": "^1.41.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

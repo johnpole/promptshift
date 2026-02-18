@@ -1,0 +1,298 @@
+/**
+ * PromptShift — Content Script Styles
+ * 
+ * Floating pill and result card injected into any webpage.
+ * Uses high z-index and !important to avoid conflicts with host page styles.
+ */
+
+/* ──────────────── FLOATING PILL ──────────────── */
+#promptshift-pill {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  max-width: 320px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.15);
+  backdrop-filter: blur(16px);
+  opacity: 0;
+  transform: translateY(-6px) scale(0.95);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  z-index: 2147483647 !important;
+}
+
+#ps-fw-hint {
+  width: 100%;
+  font-size: 10px !important;
+  color: #818cf8 !important;
+  padding: 2px 4px 0;
+  line-height: 1.3 !important;
+  font-family: inherit !important;
+}
+
+#promptshift-pill.ps-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#ps-enhance-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white !important;
+  border: none;
+  border-radius: 9px;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1 !important;
+  white-space: nowrap;
+}
+
+#ps-enhance-btn:hover {
+  background: linear-gradient(135deg, #5558e6, #7c4fe0);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+
+#ps-enhance-btn:active {
+  transform: scale(0.96);
+}
+
+#ps-framework-select {
+  padding: 5px 6px;
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+  border-radius: 8px;
+  font-size: 11px !important;
+  font-family: inherit !important;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 80px;
+}
+
+#ps-framework-select:focus {
+  border-color: rgba(99, 102, 241, 0.5) !important;
+}
+
+/* ──────────────── RESULT CARD ──────────────── */
+#promptshift-card {
+  position: fixed;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(15, 23, 42, 0.97);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(99, 102, 241, 0.08);
+  backdrop-filter: blur(20px);
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  z-index: 2147483647 !important;
+  overflow: hidden;
+}
+
+#promptshift-card.ps-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Card Header */
+.ps-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+.ps-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #e2e8f0 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+.ps-card-title svg {
+  color: #6366f1;
+}
+
+.ps-badge {
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8 !important;
+  border-radius: 4px;
+}
+
+.ps-card-close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  color: #475569 !important;
+  font-size: 18px !important;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  line-height: 1 !important;
+}
+
+.ps-card-close:hover {
+  background: rgba(71, 85, 105, 0.3) !important;
+  color: #e2e8f0 !important;
+}
+
+/* Card Body */
+.ps-card-body {
+  padding: 12px 14px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.ps-card-body::-webkit-scrollbar {
+  width: 3px;
+}
+
+.ps-card-body::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+.ps-card-text {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace !important;
+  font-size: 11.5px !important;
+  line-height: 1.65 !important;
+  color: #cbd5e1 !important;
+  white-space: pre-wrap !important;
+  word-break: break-word;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Explanation */
+.ps-card-explanation {
+  padding: 8px 14px;
+  font-size: 11px !important;
+  color: #64748b !important;
+  border-top: 1px solid rgba(30, 41, 59, 0.6);
+  line-height: 1.5 !important;
+}
+
+.ps-card-explanation strong {
+  color: #8b5cf6 !important;
+  font-size: 9px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Card Actions */
+.ps-card-actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 14px 12px;
+  border-top: 1px solid rgba(30, 41, 59, 0.4);
+}
+
+.ps-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  line-height: 1 !important;
+}
+
+.ps-btn-replace {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+  color: white !important;
+  border: none !important;
+}
+
+.ps-btn-replace:hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+}
+
+.ps-btn-copy {
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: #94a3b8 !important;
+  border: 1px solid rgba(71, 85, 105, 0.4) !important;
+}
+
+.ps-btn-copy:hover {
+  background: rgba(30, 41, 59, 0.9) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(71, 85, 105, 0.6) !important;
+}
+
+/* ──────────────── ANIMATIONS ──────────────── */
+.ps-spin {
+  animation: ps-spin 2s linear infinite;
+}
+
+@keyframes ps-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ps-shimmer {
+  height: 10px;
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200px 100%;
+  animation: ps-shimmer 1.5s infinite;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.ps-shimmer-short {
+  width: 60%;
+}
+
+@keyframes ps-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
