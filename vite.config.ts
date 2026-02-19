@@ -7,7 +7,7 @@ import { build as viteBuild } from 'vite';
 /**
  * Custom Vite plugin to:
  * 1. Build the content script and service worker as separate IIFE bundles
- * 2. Copy Chrome Extension static files (manifest.json, content.css) into dist/
+ * 2. Copy Chrome Extension static files (manifest, CSS, icons) into dist/
  */
 function buildExtensionScripts(): Plugin {
   return {
@@ -67,14 +67,23 @@ function buildExtensionScripts(): Plugin {
       });
 
       // Copy static files
-      const filesToCopy = ['manifest.json', 'src/content.css'];
-      const destNames = ['manifest.json', 'content.css'];
+      const filesToCopy = [
+        { src: 'manifest.json', dest: 'manifest.json' },
+        { src: 'src/content.css', dest: 'content.css' },
+        { src: 'assets/icons/icon16.png', dest: 'assets/icons/icon16.png' },
+        { src: 'assets/icons/icon32.png', dest: 'assets/icons/icon32.png' },
+        { src: 'assets/icons/icon48.png', dest: 'assets/icons/icon48.png' },
+        { src: 'assets/icons/icon128.png', dest: 'assets/icons/icon128.png' },
+      ];
 
-      for (let i = 0; i < filesToCopy.length; i++) {
-        const src = path.resolve(__dirname, filesToCopy[i]);
-        const dest = path.resolve(__dirname, 'dist', destNames[i]);
+      for (const file of filesToCopy) {
+        const src = path.resolve(__dirname, file.src);
+        const dest = path.resolve(__dirname, 'dist', file.dest);
         if (fs.existsSync(src)) {
+          fs.mkdirSync(path.dirname(dest), { recursive: true });
           fs.copyFileSync(src, dest);
+        } else {
+          console.warn(`[PromptShift] Missing static file: ${file.src}`);
         }
       }
     }
