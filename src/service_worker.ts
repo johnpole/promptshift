@@ -18,6 +18,8 @@ interface EnhanceRequest {
     text: string;
     framework: string;
     tone: string;
+    variation?: number;
+    avoidPrompts?: string[];
 }
 
 interface EnhanceResponse {
@@ -27,10 +29,20 @@ interface EnhanceResponse {
     error?: string;
 }
 
+interface ShortcutRelayMessage {
+    type: 'shortcut-enhance' | 'shortcut-toggle';
+}
+
 /**
  * Build the system instruction and prompt based on framework + tone.
  */
-function buildPrompt(rawInput: string, framework: string, tone: string) {
+function buildPrompt(
+    rawInput: string,
+    framework: string,
+    tone: string,
+    variation = 0,
+    avoidPrompts: string[] = []
+) {
     const systemInstruction = `You are a prompt improvement assistant. Your goal is to rewrite the user's input into a BETTER PROMPT for an LLM. 
 CRITICAL RULES:
 1. DO NOT ANSWER the user's request. You are a tool to IMPROVE the prompt, not execute it.
@@ -49,15 +61,35 @@ CRITICAL RULES:
         PERSONA_BASED: `Identify the best expert persona and begin with "Act as a [Role]..."`,
         STRUCTURED_OUTPUT: `Define the output format (JSON, Markdown table). Create a schema if needed.`,
         SOCRATIC: `Rewrite so the AI acts as a tutor, asking guiding questions instead of direct answers.`,
+        EMAIL: `Format as a clear, effective email. Include a strong Subject Line. Structure: Opening, Body, Call to Action, Sign-off.`,
+        CHAT: `Optimize for a chat interface (like WhatsApp/Slack). Keep it concise, conversational, and natural. Use emojis if appropriate for the tone.`,
         CLEANUP: `Focus only on clarity, grammar, and removing ambiguity. Keep it simple.`,
     };
 
     const frameworkInstruction = frameworkInstructions[framework] || frameworkInstructions.CLEANUP;
 
-    const userPrompt = `User's Raw Input: "${rawInput}"
-Task: Rewrite using the ${framework} approach.
-${frameworkInstruction}
-The 'explanation' field should briefly explain (1-2 sentences) what was improved.`;
+    const cleanedAvoidPrompts = avoidPrompts
+        .filter((prompt) => typeof prompt === 'string' && prompt.trim().length > 0)
+        .slice(-3)
+        .map((prompt) => {
+            const trimmed = prompt.trim();
+            return trimmed.length > 600 ? `${trimmed.slice(0, 600)}...` : trimmed;
+        });
+
+    const promptParts = [
+        `User's Raw Input: "${rawInput}"`,
+        `Task: Rewrite using the ${framework} approach.`,
+        frameworkInstruction,
+        variation > 0
+            ? `Generate a clearly different alternative rewrite (version ${variation + 1}) while preserving intent.`
+            : '',
+        cleanedAvoidPrompts.length
+            ? `Avoid repeating these previous enhanced versions:\n${cleanedAvoidPrompts.map((prompt, index) => `${index + 1}. ${prompt}`).join('\n')}`
+            : '',
+        `The 'explanation' field should briefly explain (1-2 sentences) what was improved.`,
+    ];
+
+    const userPrompt = promptParts.filter(Boolean).join('\n');
 
     return { systemInstruction, userPrompt };
 }
@@ -72,8 +104,27 @@ function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function callGemini(rawInput: string, framework: string, tone: string): Promise<EnhanceResponse> {
-    const { systemInstruction, userPrompt } = buildPrompt(rawInput, framework, tone);
+async function callGemini(
+    rawInput: string,
+    framework: string,
+    tone: string,
+    variation = 0,
+    avoidPrompts: string[] = []
+): Promise<EnhanceResponse> {
+    if (!GEMINI_API_KEY) {
+        return {
+            success: false,
+            error: 'Gemini API key is missing. Add GEMINI_API_KEY to .env.local and rebuild PromptShift.'
+        };
+    }
+
+    const { systemInstruction, userPrompt } = buildPrompt(
+        rawInput,
+        framework,
+        tone,
+        variation,
+        avoidPrompts
+    );
 
     const requestBody = {
         system_instruction: {
@@ -154,10 +205,44 @@ chrome.runtime.onMessage.addListener((
     sendResponse: (response: EnhanceResponse) => void
 ) => {
     if (message.type === 'enhance') {
-        callGemini(message.text, message.framework, message.tone)
+        callGemini(
+            message.text,
+            message.framework,
+            message.tone,
+            message.variation ?? 0,
+            message.avoidPrompts ?? []
+        )
             .then(sendResponse)
             .catch(err => sendResponse({ success: false, error: err.message }));
         return true; // Keep message channel open for async response
+    }
+});
+
+function relayShortcutToActiveTab(message: ShortcutRelayMessage) {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+        const activeTabId = tabs[0]?.id;
+        if (typeof activeTabId !== 'number') return;
+
+        chrome.tabs.sendMessage(activeTabId, message, () => {
+            const lastError = chrome.runtime.lastError;
+            if (
+                lastError &&
+                !lastError.message.includes('Receiving end does not exist') &&
+                !lastError.message.includes('Could not establish connection')
+            ) {
+                console.warn('[PromptShift] Command relay failed:', lastError.message);
+            }
+        });
+    });
+}
+
+chrome.commands.onCommand.addListener((command) => {
+    if (command === 'enhance_promptshift') {
+        relayShortcutToActiveTab({ type: 'shortcut-enhance' });
+        return;
+    }
+    if (command === 'toggle_promptshift') {
+        relayShortcutToActiveTab({ type: 'shortcut-toggle' });
     }
 });
 

@@ -1,121 +1,113 @@
-<!DOCTYPE html>
-<html lang="en" class="dark">
-
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PromptShift - AI Prompt Enhancer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet">
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            background: '#0f172a', // Slate 950
-            surface: '#1e293b', // Slate 800
-            primary: '#6366f1', // Indigo 500
-            secondary: '#ec4899', // Pink 500
-            accent: '#8b5cf6', // Violet 500
-          },
-          animation: {
-            'gradient-x': 'gradient-x 15s ease infinite',
-            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-          },
-          keyframes: {
-            'gradient-x': {
-              '0%, 100%': {
-                'background-size': '200% 200%',
-                'background-position': 'left center',
-              },
-              '50%': {
-                'background-size': '200% 200%',
-                'background-position': 'right center',
-              },
-            },
-          },
-        },
-      },
-    }
-  </script>
+  <title>PromptShift</title>
   <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      /* Chrome Extension Popup dimensions */
-      width: 420px;
-      min-height: 500px;
-      max-height: 600px;
       margin: 0;
-      overflow-x: hidden;
-      overflow-y: auto;
+      width: 360px;
+      min-height: 240px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #e2e8f0;
+      background:
+        radial-gradient(circle at top right, rgba(99, 102, 241, 0.28), transparent 54%),
+        radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.2), transparent 55%),
+        #0b1220;
     }
 
-    /* Full tab view */
-    @media (min-width: 800px) {
-      body {
-        width: 100%;
-        max-width: 600px;
-        min-height: 100vh;
-        max-height: none;
-        margin: 0 auto;
-      }
+    .popup {
+      padding: 16px;
     }
 
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-      width: 4px;
-      height: 4px;
+    .title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
     }
 
-    ::-webkit-scrollbar-track {
-      background: transparent;
+    .subtitle {
+      margin: 6px 0 0;
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.45;
     }
 
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
+    .panel {
+      margin-top: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      background: rgba(15, 23, 42, 0.72);
+      border-radius: 12px;
+      padding: 10px 12px;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
+    .panel-title {
+      margin: 0 0 8px;
+      font-size: 11px;
+      color: #a5b4fc;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
 
-    /* Smooth animations */
-    @keyframes shimmer {
-      0% {
-        background-position: -200px 0;
-      }
+    .steps {
+      margin: 0;
+      padding-left: 16px;
+      font-size: 12px;
+      line-height: 1.55;
+      color: #cbd5e1;
+    }
 
-      100% {
-        background-position: calc(200px + 100%) 0;
-      }
+    .steps li + li {
+      margin-top: 4px;
+    }
+
+    .kbd {
+      display: inline-block;
+      padding: 1px 6px;
+      margin: 0 1px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      border-radius: 6px;
+      background: rgba(15, 23, 42, 0.55);
+      font-size: 11px;
+      color: #e2e8f0;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .footer {
+      margin-top: 12px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: #94a3b8;
     }
   </style>
-  <script type="importmap">
-{
-  "imports": {
-    "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react": "https://esm.sh/react@^19.2.4",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
-  }
-}
-</script>
-  <link rel="stylesheet" href="/index.css">
 </head>
-
 <body>
-  <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  <main class="popup">
+    <h1 class="title">PromptShift</h1>
+    <p class="subtitle">Enhance prompts directly inside ChatGPT, Gemini, Claude, and other text inputs.</p>
 
+    <section class="panel">
+      <p class="panel-title">Shortcuts</p>
+      <ol class="steps">
+        <li>Focus a text box and type at least 3 characters.</li>
+        <li>Press <span class="kbd">Ctrl/Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">E</span> to enhance.</li>
+        <li>Press <span class="kbd">Ctrl/Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">Y</span> to hide/show the pill.</li>
+      </ol>
+    </section>
+
+    <p class="footer">If shortcuts stop working after an extension reload, refresh the page tab once.</p>
+  </main>
+</body>
 </html>
