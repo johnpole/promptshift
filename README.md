@@ -5,6 +5,16 @@ It injects a floating "Enhance" control into text fields across websites and rew
 
 ![PromptShift Logo](assets/icons/logo-1024.png)
 
+## Walkthrough
+ 
+ See PromptShift in action! Below is a quick demonstration of PromptShift running inside Google AI Studio.
+ 
+ 1. **Type your raw idea**: Simply type out a rough prompt you want to improve, and the PromptShift extension will appear.
+ ![Step 1 - Typing the Prompt](assets/walkthrough/step1.png)
+ 
+ 2. **Enhance in one click**: After clicking the **Enhance** button, PromptShift will give you an expertly structured, framework-backed rewrite to get the best responses out of the AI.
+ ![Step 2 - Prompt Enhanced](assets/walkthrough/step2.png)
+ 
 ## Features
 
 - Works in `textarea`, text `input`, and `contenteditable` fields across websites.
