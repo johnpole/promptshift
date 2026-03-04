@@ -14,7 +14,7 @@ function buildExtensionScripts(): Plugin {
     name: 'build-extension-scripts',
     async writeBundle() {
       const env = loadEnv('production', '.', '');
-      const apiKey = env.GEMINI_API_KEY || '';
+      const apiKey = env.GROQ_API_KEY || env.GEMINI_API_KEY || '';
 
       // Build content script
       await viteBuild({
@@ -99,8 +99,9 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [react(), buildExtensionScripts()],
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      'process.env.API_KEY': JSON.stringify(env.GROQ_API_KEY || env.GEMINI_API_KEY),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.GROQ_API_KEY': JSON.stringify(env.GROQ_API_KEY)
     },
     resolve: {
       alias: {
