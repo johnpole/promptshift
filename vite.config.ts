@@ -14,7 +14,8 @@ function buildExtensionScripts(): Plugin {
     name: 'build-extension-scripts',
     async writeBundle() {
       const env = loadEnv('production', '.', '');
-      const apiKey = env.GROQ_API_KEY || env.GEMINI_API_KEY || '';
+      const groqApiKey = env.GROQ_API_KEY || '';
+      const geminiApiKey = env.GEMINI_API_KEY || '';
 
       // Build content script
       await viteBuild({
@@ -62,7 +63,8 @@ function buildExtensionScripts(): Plugin {
           sourcemap: false,
         },
         define: {
-          'PROMPTSHIFT_API_KEY': JSON.stringify(apiKey),
+          'PROMPTSHIFT_GROQ_API_KEY': JSON.stringify(groqApiKey),
+          'PROMPTSHIFT_GEMINI_API_KEY': JSON.stringify(geminiApiKey),
         },
       });
 

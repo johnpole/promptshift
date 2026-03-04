@@ -8,7 +8,7 @@ It injects a floating "Enhance" control into text fields across websites and rew
 ## Features
 
 - Works in `textarea`, text `input`, and `contenteditable` fields across websites.
-- One-click prompt enhancement powered by Groq.
+- One-click prompt enhancement powered by your choice of Groq or Gemini.
 - Multiple enhancement strategies, including:
   - Polish
   - Email
@@ -30,13 +30,13 @@ It injects a floating "Enhance" control into text fields across websites and rew
 - React + TypeScript + Vite
 - Chrome Extension Manifest V3
 - Service worker + content script architecture
-- Groq API (`llama-3.3-70b-versatile`) via REST
+- Supports both **Groq API** (`llama-3.3-70b-versatile`) and **Gemini API** (`gemini-2.0-flash-lite`) via REST
 
 ## Prerequisites
 
 - Node.js 18+
 - npm
-- A Groq API key from [Groq Console](https://console.groq.com/keys)
+- A [Groq API key](https://console.groq.com/keys) or a [Google Gemini API key](https://aistudio.google.com).
 
 ## Local Setup
 
@@ -49,7 +49,10 @@ npm install
 2. Create `.env.local` in the project root:
 
 ```env
-GROQ_API_KEY=YOUR_API_KEY_HERE
+# You can provide either or both keys.
+# If both are provided, Groq will be prioritized.
+GROQ_API_KEY=YOUR_GROQ_API_KEY_HERE
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 ```
 
 3. Build the extension:
@@ -76,7 +79,7 @@ The extension icon is configured in `manifest.json` and generated from files in 
 ## Project Structure
 
 - `src/content.ts`: Injected script for in-page UI and enhancement flow.
-- `src/service_worker.ts`: Background worker that calls Groq API.
+- `src/service_worker.ts`: Background worker that calls the configured AI API.
 - `src/content.css`: Styling for injected UI.
 - `manifest.json`: Chrome extension configuration.
 - `assets/icons/`: Extension icons used by Chrome.
@@ -95,12 +98,12 @@ Chrome uses these icon files for the extension entry and toolbar display.
 
 - Never commit real API keys.
 - Keep secrets in `.env.local` only.
-- Restrict your Groq key when possible.
+- Restrict your API keys when possible.
 
 ## Troubleshooting
 
 - If you reload the extension, refresh any open tabs where you expect PromptShift to run.
-- If enhancement fails, confirm `GROQ_API_KEY` is set and run `npm run build` again.
+- If enhancement fails, confirm `GROQ_API_KEY` or `GEMINI_API_KEY` is set and run `npm run build` again.
 - If you hit rate limits, wait briefly and retry.
 
 ## License

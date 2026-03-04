@@ -7,11 +7,18 @@
  */
 
 // @ts-ignore — Injected at build time via Vite define
-declare const PROMPTSHIFT_API_KEY: string;
+declare const PROMPTSHIFT_GROQ_API_KEY: string;
+// @ts-ignore — Injected at build time via Vite define
+declare const PROMPTSHIFT_GEMINI_API_KEY: string;
 
-const GROQ_API_KEY = PROMPTSHIFT_API_KEY;
-const MODEL_ID = 'llama-3.3-70b-versatile';
+const GROQ_API_KEY = PROMPTSHIFT_GROQ_API_KEY;
+const GEMINI_API_KEY = PROMPTSHIFT_GEMINI_API_KEY;
+
+const GROQ_MODEL_ID = 'llama-3.3-70b-versatile';
 const GROQ_API_URL = `https://api.groq.com/openai/v1/chat/completions`;
+
+const GEMINI_MODEL_ID = 'gemini-2.0-flash-lite';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL_ID}:generateContent?key=${GEMINI_API_KEY}`;
 
 interface EnhanceRequest {
     type: 'enhance';
@@ -111,13 +118,6 @@ async function callGroq(
     variation = 0,
     avoidPrompts: string[] = []
 ): Promise<EnhanceResponse> {
-    if (!GROQ_API_KEY) {
-        return {
-            success: false,
-            error: 'Groq API key is missing. Add GROQ_API_KEY to .env.local and rebuild PromptShift.'
-        };
-    }
-
     const { systemInstruction, userPrompt } = buildPrompt(
         rawInput,
         framework,
@@ -127,7 +127,7 @@ async function callGroq(
     );
 
     const requestBody = {
-        model: MODEL_ID,
+        model: GROQ_MODEL_ID,
         messages: [
             { role: "system", content: systemInstruction },
             { role: "user", content: userPrompt }
@@ -196,6 +196,109 @@ async function callGroq(
     return { success: false, error: 'Max retries exceeded. Please try again in a moment.' };
 }
 
+async function callGemini(
+    rawInput: string,
+    framework: string,
+    tone: string,
+    variation = 0,
+    avoidPrompts: string[] = []
+): Promise<EnhanceResponse> {
+    const { systemInstruction, userPrompt } = buildPrompt(
+        rawInput,
+        framework,
+        tone,
+        variation,
+        avoidPrompts
+    );
+
+    const requestBody = {
+        system_instruction: {
+            parts: [{ text: systemInstruction }]
+        },
+        contents: [{
+            parts: [{ text: userPrompt }]
+        }],
+        generationConfig: {
+            response_mime_type: 'application/json'
+        }
+    };
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            const response = await fetch(GEMINI_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (response.status === 429 && attempt < MAX_RETRIES) {
+                const delay = BASE_DELAY_MS * Math.pow(2, attempt);
+                console.warn(`PromptShift: Rate limited (429). Retrying in ${delay}ms... (${attempt + 1}/${MAX_RETRIES})`);
+                await sleep(delay);
+                continue;
+            }
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error('Gemini API error:', errText);
+                if (response.status === 429) {
+                    return { success: false, error: 'Rate limited — too many requests. Wait a few seconds and try again.' };
+                }
+                return { success: false, error: `API Error (${response.status}): ${response.statusText}` };
+            }
+
+            const data = await response.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!text) {
+                return { success: false, error: 'Empty response from Gemini' };
+            }
+
+            const parsed = JSON.parse(text);
+
+            let enhanced = parsed.enhanced_prompt || 'Error parsing enhanced prompt.';
+            let explanation = parsed.explanation || 'No explanation provided.';
+
+            if (typeof enhanced !== 'string') {
+                enhanced = JSON.stringify(enhanced, null, 2);
+            }
+            if (typeof explanation !== 'string') {
+                explanation = JSON.stringify(explanation, null, 2);
+            }
+
+            return { success: true, enhanced, explanation };
+        } catch (error: any) {
+            if (attempt < MAX_RETRIES) {
+                await sleep(BASE_DELAY_MS * Math.pow(2, attempt));
+                continue;
+            }
+            console.error('Gemini call failed:', error);
+            return { success: false, error: error.message || 'Failed to enhance prompt.' };
+        }
+    }
+
+    return { success: false, error: 'Max retries exceeded. Please try again in a moment.' };
+}
+
+async function callAI(
+    rawInput: string,
+    framework: string,
+    tone: string,
+    variation = 0,
+    avoidPrompts: string[] = []
+): Promise<EnhanceResponse> {
+    if (GROQ_API_KEY) {
+        return callGroq(rawInput, framework, tone, variation, avoidPrompts);
+    } else if (GEMINI_API_KEY) {
+        return callGemini(rawInput, framework, tone, variation, avoidPrompts);
+    } else {
+        return {
+            success: false,
+            error: 'No API key provided. Add GROQ_API_KEY or GEMINI_API_KEY to .env.local and rebuild PromptShift.'
+        };
+    }
+}
+
 /**
  * Listen for messages from content scripts.
  */
@@ -205,7 +308,7 @@ chrome.runtime.onMessage.addListener((
     sendResponse: (response: EnhanceResponse) => void
 ) => {
     if (message.type === 'enhance') {
-        callGroq(
+        callAI(
             message.text,
             message.framework,
             message.tone,
